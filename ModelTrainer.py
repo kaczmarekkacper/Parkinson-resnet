@@ -46,7 +46,7 @@ class ModelTrainer:
 
         self.model = self.train_model(train_data_loader, test_data_loader, model, criterion, optimizer,
                                       exp_lr_scheduler, num_epochs=num_epochs)
-        torch.save(model, 'resnet1.pth')
+        torch.save(model, 'resnet.pth')
 
         plt.plot(self.training_loss, label='Training loss')
         plt.plot(self.validation_loss, label='Validation loss')

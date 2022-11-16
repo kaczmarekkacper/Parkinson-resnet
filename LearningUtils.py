@@ -1,6 +1,8 @@
 import torch
 import pickle
 from torch.utils.data import DataLoader
+from torchvision import transforms
+
 from PatientDataset import PatientDataset
 
 
@@ -11,17 +13,26 @@ def get_classes(imgdir):
 
 
 def prepare_data(imgdir):
+    transofrm = transforms.Compose([
+        # transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+
     training_data = PatientDataset(
         annotations_file=f"{imgdir}_train",
-        img_dir=imgdir
+        img_dir=imgdir,
+        transform=transofrm
     )
     test_data = PatientDataset(
         annotations_file=f"{imgdir}_test",
-        img_dir=imgdir
+        img_dir=imgdir,
+        transform=transofrm
     )
     validation_data = PatientDataset(
         annotations_file=f"{imgdir}_validation",
-        img_dir=imgdir
+        img_dir=imgdir,
+        transform=transofrm
     )
 
     batch_size = 8
