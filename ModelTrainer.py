@@ -8,13 +8,13 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
-from torchvision import models
 
 
 class ModelTrainer:
 
     def __init__(self, classes):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu")
         self.training_loss = list()
         self.training_accuracy = list()
         self.validation_loss = list()
@@ -22,8 +22,8 @@ class ModelTrainer:
         self.model = None
         self.classes = classes
 
-    def train_resnet(self, train_data_loader, test_data_loader, num_epochs=25):
-        model = models.resnet18(pretrained=True)
+    def train_resnet(self, model, train_data_loader, test_data_loader, num_epochs=25):
+
         # Freeze all parameters
         for param in model.parameters():
             param.requires_grad = False
@@ -36,7 +36,8 @@ class ModelTrainer:
         model = model.to(self.device)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(model.fc.parameters(), lr=0.0001, momentum=0.9)
-        exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+        exp_lr_scheduler = lr_scheduler.StepLR(
+            optimizer, step_size=7, gamma=0.01)
 
         self.training_loss = list()
         self.training_accuracy = list()
@@ -127,7 +128,8 @@ class ModelTrainer:
                     self.validation_loss.append(epoch_loss)
                     self.validation_accuracy.append(epoch_acc.cpu())
 
-                print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
+                print('{} Loss: {:.4f} Acc: {:.4f}'.format(
+                    phase, epoch_loss, epoch_acc))
 
                 # deep copy the model
                 if phase == 'val' and epoch_acc > best_acc:
@@ -137,7 +139,8 @@ class ModelTrainer:
             print()
 
         time_elapsed = time.time() - since
-        print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+        print('Training complete in {:.0f}m {:.0f}s'.format(
+            time_elapsed // 60, time_elapsed % 60))
         print('Best val Acc: {:4f}'.format(best_acc))
 
         # load best model weights
