@@ -24,20 +24,11 @@ class ModelTrainer:
 
     def train_resnet(self, model, train_data_loader, test_data_loader, num_epochs=25):
 
-        # Freeze all parameters
-        for param in model.parameters():
-            param.requires_grad = False
-
-        model.layer4.requires_grad_(True)
-
         num_ftrs = model.fc.in_features
-        # Override classifier part
         model.fc = nn.Linear(num_ftrs, len(self.classes))
         model = model.to(self.device)
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.SGD(model.fc.parameters(), lr=0.0001, momentum=0.9)
-        exp_lr_scheduler = lr_scheduler.StepLR(
-            optimizer, step_size=7, gamma=0.01)
+        optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
 
         self.training_loss = list()
         self.training_accuracy = list()
@@ -45,7 +36,7 @@ class ModelTrainer:
         self.validation_accuracy = list()
 
         self.model = self.train_model(train_data_loader, test_data_loader, model, criterion, optimizer,
-                                      exp_lr_scheduler, num_epochs=num_epochs)
+                                      num_epochs=num_epochs)
         torch.save(model, 'resnet.pth')
 
         plt.plot(self.training_loss, label='Training loss')
@@ -69,7 +60,7 @@ class ModelTrainer:
         return self.model
 
     def train_model(self, train_data_loader: DataLoader, test_data_loader: DataLoader,
-                    model, criterion, optimizer, scheduler, num_epochs=25):
+                    model, criterion, optimizer, num_epochs=25):
         since = time.time()
 
         best_model_wts = copy.deepcopy(model.state_dict())
@@ -114,8 +105,6 @@ class ModelTrainer:
                     # statistics
                     running_loss += loss.item() * inputs.size(0)
                     running_corrects += torch.sum(preds == labels.data)
-                if phase == 'train':
-                    scheduler.step()
 
                 epoch_loss = running_loss / len(data_loader.dataset)
                 epoch_acc = running_corrects.double() / len(data_loader.dataset)
