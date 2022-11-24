@@ -2,7 +2,6 @@ import os
 import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset
-from torchvision.transforms import transforms
 
 data_file_colum_names = ['Time', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8',
                          'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'Force_Left', 'Force_Right']

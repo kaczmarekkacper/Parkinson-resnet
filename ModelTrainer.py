@@ -6,12 +6,10 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
 
 
 class ModelTrainer:
-
     def __init__(self, classes):
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu")
@@ -23,6 +21,9 @@ class ModelTrainer:
         self.classes = classes
 
     def train_resnet(self, model, train_data_loader, test_data_loader, num_epochs=25):
+
+        # for param in model.parameters():
+        #     param.requires_grad = False
 
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, len(self.classes))

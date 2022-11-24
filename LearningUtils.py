@@ -2,8 +2,10 @@ import torch
 import pickle
 from torch.utils.data import DataLoader
 from torchvision import transforms
+import importlib
 
-from PatientDataset import PatientDataset
+import PatientDataset
+importlib.reload(PatientDataset)
 
 
 def get_classes(imgdir):
@@ -13,32 +15,39 @@ def get_classes(imgdir):
 
 
 def prepare_data(imgdir):
-    transofrm = transforms.Compose([
-        # transforms.CenterCrop(224),
+    train_transform = transforms.Compose([
+        # transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+    test_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
-    training_data = PatientDataset(
+    training_data = PatientDataset.PatientDataset(
         annotations_file=f"{imgdir}_train",
         img_dir=imgdir,
-        transform=transofrm
+        transform=train_transform
     )
-    test_data = PatientDataset(
+    test_data = PatientDataset.PatientDataset(
         annotations_file=f"{imgdir}_test",
         img_dir=imgdir,
-        transform=transofrm
+        transform=test_transform
     )
-    validation_data = PatientDataset(
+    validation_data = PatientDataset.PatientDataset(
         annotations_file=f"{imgdir}_validation",
         img_dir=imgdir,
-        transform=transofrm
+        transform=test_transform
     )
 
-    batch_size = 8
-    train_data_loader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
-    test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
-    validation_data_loader = DataLoader(validation_data, batch_size=batch_size, shuffle=True)
+    batch_size = 32
+    train_data_loader = DataLoader(
+        training_data, batch_size=batch_size, shuffle=True)
+    test_data_loader = DataLoader(
+        test_data, batch_size=batch_size, shuffle=True)
+    validation_data_loader = DataLoader(
+        validation_data, batch_size=batch_size, shuffle=True)
 
     return train_data_loader, validation_data_loader, test_data_loader
 
@@ -57,4 +66,5 @@ def predict_image(model, data_loader, classes):
             confusion_matrix[t.long(), p.long()] += 1
     acc = corrects.double() / len(data_loader.dataset)
     print("Test dataset Accuracy:", acc.cpu().detach().numpy())
-    print("Test dataset Confusion_matrix \n", confusion_matrix.cpu().detach().numpy())
+    print("Test dataset Confusion_matrix \n",
+          confusion_matrix.cpu().detach().numpy())

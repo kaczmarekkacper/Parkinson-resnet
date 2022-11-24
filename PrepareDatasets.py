@@ -23,7 +23,8 @@ def main():
     train_writer = csv.writer(train_f)
     test_f = open(f"{args.output}_test", 'w', encoding='UTF8', newline='')
     test_writer = csv.writer(test_f)
-    validation_f = open(f"{args.output}_validation", 'w', encoding='UTF8', newline='')
+    validation_f = open(f"{args.output}_validation",
+                        'w', encoding='UTF8', newline='')
     validation_writer = csv.writer(validation_f)
 
     s = args.split.split('/')
