@@ -123,8 +123,8 @@ def createWaveletPlot(x, cwtFunc, group, patientID, sensor):
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
-    ax.imshow(cwtmatr, extent=[0, x.values[-1], width, 1], cmap='PRGn', aspect='auto',
-              vmax=cwtmatr.max(), vmin=cwtmatr.min())
+    ax.imshow(cwtmatr, extent=[0, x.values[-1], width, 1], cmap='PRGn',
+              aspect='auto', vmax=abs(cwtmatr).max(), vmin=abs(cwtmatr).min())
     fig.savefig(f'plots/wavelets/{group}/{patientID}_{sensor}.jpg',
                 format="jpg", bbox_inches="tight", pad_inches=0)  # , dpi=dpi)
     plt.close()
