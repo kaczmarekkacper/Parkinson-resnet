@@ -1,10 +1,23 @@
-import os
-import pickle
-
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
-from scipy import signal
+
+
+def readData():
+    col_names = ['SUM', 'FILENAME']
+    data_file_colum_names = ['Time', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6',
+                             'R7', 'R8', 'Force_Left', 'Force_Right']
+    sums = pd.read_csv('Data/SHA256SUMS.txt', header=None, sep=' ', names=col_names)
+    all_filenames = sums['FILENAME']
+    filenames = all_filenames[all_filenames.str.contains(r'\d.txt$')]
+    records = {}
+    for filename in filenames:
+        patientID = getPatientID(filename)
+        measureNumber = getMeasureNumber(filename)
+        if patientID not in records:
+            records[patientID] = {}
+        records[patientID][f'data{measureNumber}'] = pd.read_csv(f'Data/{filename}', header=None, sep='\t',
+                                                                 names=data_file_colum_names)
+    return records
 
 
 def getPatientID(filename):
@@ -13,6 +26,40 @@ def getPatientID(filename):
 
 def getMeasureNumber(filename):
     return int(filename.split("_")[1].split(".")[0])
+
+
+def createComparisonPlot(healthy_record, parkinson_record, sample_number):
+    x_healthy_left = healthy_record.Time.head(sample_number)
+    y_healthy_left = healthy_record.Force_Left.head(sample_number)
+    x_healthy_right = healthy_record.Time.head(sample_number)
+    y_healthy_right = healthy_record.Force_Right.head(sample_number)
+
+    x_parkinson_left = parkinson_record.Time.head(sample_number)
+    y_parkinson_left = parkinson_record.Force_Left.head(sample_number)
+    x_parkinson_right = parkinson_record.Time.head(sample_number)
+    y_parkinson_right = parkinson_record.Force_Right.head(sample_number)
+
+    y_lim_value = pd.concat([y_healthy_left, y_healthy_right, y_parkinson_left, y_parkinson_right]).max()
+
+    fig, axs = plt.subplots(2, 2)
+    healthy_plot_left = axs[0, 0]
+    healthy_plot_left.set_title('Normalny')
+    healthy_plot_left.plot(x_healthy_left, y_healthy_left)
+    healthy_plot_left.set_ylim(0, y_lim_value)
+    parkinson_plot_left = axs[0, 1]
+    parkinson_plot_left.set_title('Parkinson')
+    parkinson_plot_left.plot(x_parkinson_left, y_parkinson_left)
+    parkinson_plot_left.set_ylim(0, y_lim_value)
+    healthy_plot_right = axs[1, 0]
+    healthy_plot_right.plot(x_healthy_right, y_healthy_right)
+    healthy_plot_right.set_ylim(0, y_lim_value)
+    parkinson_plot_right = axs[1, 1]
+    parkinson_plot_right.plot(x_parkinson_right, y_parkinson_right)
+    parkinson_plot_right.set_ylim(0, y_lim_value)
+    fig.text(0.5, 0.04, 'Czas [s]', ha='center')
+    fig.text(0.02, 0.5, 'Siła nacisku [N]', va='center', rotation='vertical')
+
+    plt.savefig("plots/gait-comparison.pdf", format="pdf", bbox_inches="tight")
 
 
 def createAllSensorPlot(patient_record, filename, sample_number=1000):
@@ -124,7 +171,7 @@ def createWaveletPlot(x, cwtFunc, group, patientID, sensor):
     ax.set_axis_off()
     fig.add_axes(ax)
     ax.imshow(cwtmatr, extent=[0, x.values[-1], width, 1], cmap='PRGn',
-              aspect='auto', vmax=abs(cwtmatr).max(), vmin=abs(cwtmatr).min())
+              aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
     fig.savefig(f'plots/wavelets/{group}/{patientID}_{sensor}.jpg',
-                format="jpg", bbox_inches="tight", pad_inches=0)  # , dpi=dpi)
+                format="jpg", bbox_inches="tight", pad_inches=0) #, dpi=dpi)
     plt.close()
