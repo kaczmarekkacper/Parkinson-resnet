@@ -1,12 +1,18 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-
+from scipy import signal
+import os
+import csv
+import os
+import pickle
+import shutil
 
 def readData():
     col_names = ['SUM', 'FILENAME']
     data_file_colum_names = ['Time', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6',
                              'R7', 'R8', 'Force_Left', 'Force_Right']
-    sums = pd.read_csv('Data/SHA256SUMS.txt', header=None, sep=' ', names=col_names)
+    sums = pd.read_csv('Data/SHA256SUMS.txt', header=None,
+                       sep=' ', names=col_names)
     all_filenames = sums['FILENAME']
     filenames = all_filenames[all_filenames.str.contains(r'\d.txt$')]
     records = {}
@@ -39,7 +45,8 @@ def createComparisonPlot(healthy_record, parkinson_record, sample_number):
     x_parkinson_right = parkinson_record.Time.head(sample_number)
     y_parkinson_right = parkinson_record.Force_Right.head(sample_number)
 
-    y_lim_value = pd.concat([y_healthy_left, y_healthy_right, y_parkinson_left, y_parkinson_right]).max()
+    y_lim_value = pd.concat(
+        [y_healthy_left, y_healthy_right, y_parkinson_left, y_parkinson_right]).max()
 
     fig, axs = plt.subplots(2, 2)
     healthy_plot_left = axs[0, 0]
@@ -161,7 +168,18 @@ def getXYFromPatient(patient_record, getField, sample_number=1000):
     return x, y
 
 
-def createWaveletPlot(x, cwtFunc, group, patientID, sensor):
+def createWaveletPlot(x, cwtFunc, width, path, format):
+    cwtmatr = cwtFunc()
+    plt.figure()
+    # dpi = 1
+    # fig.set_size_inches(224 / dpi, 224 / dpi)
+    plt.imshow(cwtmatr, extent=[0, x.values[-1], width, 1], cmap='PRGn',
+               aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
+    plt.savefig(f'{path}.{format}',
+                format=format, bbox_inches="tight", pad_inches=0)  # , dpi=dpi)
+
+
+def createWaveletPlotForResnet(x, cwtFunc, width, path, format):
     width = 100
     cwtmatr = cwtFunc()
     fig = plt.figure(frameon=False)
@@ -172,6 +190,91 @@ def createWaveletPlot(x, cwtFunc, group, patientID, sensor):
     fig.add_axes(ax)
     ax.imshow(cwtmatr, extent=[0, x.values[-1], width, 1], cmap='PRGn',
               aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
-    fig.savefig(f'plots/wavelets/{group}/{patientID}_{sensor}.jpg',
-                format="jpg", bbox_inches="tight", pad_inches=0) #, dpi=dpi)
+    fig.savefig(f'{path}.{format}',
+                format=format, bbox_inches="tight", pad_inches=0)  # , dpi=dpi)
     plt.close()
+
+
+def getParkinsonStatus(patients, id):
+    hoehnYahr = patients[patients['ID'] == id]['HoehnYahr'].values[0]
+    parkinson = 'Parkinson' if hoehnYahr > 0 else 'Healthy'
+    return parkinson
+
+
+def getHoehnYahrStatus(patients, id):
+    hoehnYahr = patients[patients['ID'] == id]['HoehnYahr'].values[0]
+    hoehnYahr = hoehnYahr if hoehnYahr > 0 else 0.0
+    return hoehnYahr
+
+
+def createDatabase(record, id, sensors, splits_list, howManyInSample, main_path, parkinson, widths, w):
+    for sensor in sensors:
+        for i in range(1, len(splits_list)):
+            for wavelet in ['Ricker', 'Morlet']:
+                func, name = sensor
+                start = splits_list[i-1]
+                end = splits_list[i]
+                if end - start == howManyInSample:
+                    x = record.Time[start:end]
+                    y = func(record).abs()[start:end]
+                    path = f'{main_path}/{wavelet}/{parkinson}/{id}_{name}_{i}'
+                    def cwtFunc(): return signal.cwt(y, signal.ricker, widths, dtype='float64')
+                    if wavelet == 'Morlet':
+                        def cwtFunc(): return signal.cwt(y, signal.morlet2, widths, dtype='float64', w=w)
+                    createWaveletPlotForResnet(
+                        x, cwtFunc, widths[-1], path, 'jpg')
+
+
+def removeDatasetFolders(main_path):
+    if os.path.exists(f'{main_path}/Healthy'):
+        shutil.rmtree(f'{main_path}/Healthy', ignore_errors=True)
+    if os.path.exists(f'{main_path}/Parkinson'):
+        shutil.rmtree(f'{main_path}/Parkinson', ignore_errors=True)
+
+
+def createDatasetFolders(main_path):
+    os.makedirs(f'{main_path}/Healthy', exist_ok=True)
+    os.makedirs(f'{main_path}/Parkinson', exist_ok=True)
+
+
+def createDatasets(main_path):
+    directory = f"{main_path}"
+    output = f"{main_path}"
+    split = "70/20/10"
+
+    train_f = open(f"{output}_train", 'w', encoding='UTF8', newline='')
+    train_writer = csv.writer(train_f)
+    test_f = open(f"{output}_test", 'w', encoding='UTF8', newline='')
+    test_writer = csv.writer(test_f)
+    validation_f = open(f"{output}_validation", 'w',
+                        encoding='UTF8', newline='')
+    validation_writer = csv.writer(validation_f)
+
+    s = split.split('/')
+    splits = {
+        "train": int(s[0]),
+        "test": int(s[1]),
+        "validation": int(s[2])
+    }
+
+    classes = {}
+    for idx, c in enumerate(os.listdir(directory)):
+        classes[idx] = c
+
+        images = os.listdir(f"{directory}/{c}")
+        class_count = len(images)
+        for imidx, filename in enumerate(images):
+            row = [f"{c}/{filename}", idx]
+            if imidx < class_count * splits["train"] / 100:
+                train_writer.writerow(row)
+            elif imidx < class_count * (splits["train"] + splits["test"]) / 100:
+                test_writer.writerow(row)
+            else:
+                validation_writer.writerow(row)
+
+    with open(f"{output}_utils", 'wb') as f:
+        pickle.dump(classes, f)
+
+    train_f.close()
+    test_f.close()
+    validation_f.close()
