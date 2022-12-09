@@ -1,4 +1,0 @@
-Test dataset Accuracy: 0.6728395061728395
-Test dataset Confusion_matrix 
- [[314. 300.]
- [177. 667.]]

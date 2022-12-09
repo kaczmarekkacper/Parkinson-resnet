@@ -3,13 +3,15 @@ import pickle
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import importlib
+import logging
+import sys
 
 import PatientDataset
 importlib.reload(PatientDataset)
 
 
 def get_classes(imgdir):
-    with open(f"{imgdir}_utils", 'rb') as f:
+    with open(f"{imgdir}/utils", 'rb') as f:
         data = pickle.load(f)
     return data
 
@@ -29,17 +31,17 @@ def prepare_data(imgdir):
     ])
 
     training_data = PatientDataset.PatientDataset(
-        annotations_file=f"{imgdir}_train",
+        annotations_file=f"{imgdir}/train",
         img_dir=imgdir,
         transform=train_transform
     )
     test_data = PatientDataset.PatientDataset(
-        annotations_file=f"{imgdir}_test",
+        annotations_file=f"{imgdir}/test",
         img_dir=imgdir,
         transform=test_transform
     )
     validation_data = PatientDataset.PatientDataset(
-        annotations_file=f"{imgdir}_validation",
+        annotations_file=f"{imgdir}/validation",
         img_dir=imgdir,
         transform=test_transform
     )
@@ -68,6 +70,5 @@ def predict_image(model, data_loader, classes):
         for t, p in zip(labels.view(-1), preds.view(-1)):
             confusion_matrix[t.long(), p.long()] += 1
     acc = corrects.double() / len(data_loader.dataset)
-    print("Test dataset Accuracy:", acc.cpu().detach().numpy())
-    print("Test dataset Confusion_matrix \n",
-          confusion_matrix.cpu().detach().numpy())
+    logging.debug(f'Test dataset Accuracy: {acc.cpu().detach().numpy()}')
+    logging.debug(f'Test dataset Confusion_matrix \n{confusion_matrix.cpu().detach().numpy()}')

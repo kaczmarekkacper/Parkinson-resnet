@@ -225,12 +225,8 @@ def createDatabase(record, id, sensors, splits_list, howManyInSample, main_path,
                         x, cwtFunc, widths[-1], path, 'jpg')
 
 
-def removeDatasetFolders(main_path):
-    if os.path.exists(f'{main_path}/Healthy'):
-        shutil.rmtree(f'{main_path}/Healthy', ignore_errors=True)
-    if os.path.exists(f'{main_path}/Parkinson'):
-        shutil.rmtree(f'{main_path}/Parkinson', ignore_errors=True)
-
+def removeDatasetFolders(path):
+    shutil.rmtree(f'{path}', ignore_errors=True)
 
 def createDatasetFolders(main_path):
     os.makedirs(f'{main_path}/Healthy', exist_ok=True)
@@ -242,11 +238,11 @@ def createDatasets(main_path):
     output = f"{main_path}"
     split = "70/20/10"
 
-    train_f = open(f"{output}_train", 'w', encoding='UTF8', newline='')
+    train_f = open(f"{output}/train", 'w', encoding='UTF8', newline='')
     train_writer = csv.writer(train_f)
-    test_f = open(f"{output}_test", 'w', encoding='UTF8', newline='')
+    test_f = open(f"{output}/test", 'w', encoding='UTF8', newline='')
     test_writer = csv.writer(test_f)
-    validation_f = open(f"{output}_validation", 'w',
+    validation_f = open(f"{output}/validation", 'w',
                         encoding='UTF8', newline='')
     validation_writer = csv.writer(validation_f)
 
@@ -259,6 +255,8 @@ def createDatasets(main_path):
 
     classes = {}
     for idx, c in enumerate(os.listdir(directory)):
+        if not os.path.isdir(os.path.join(directory, c)):
+            continue
         classes[idx] = c
 
         images = os.listdir(f"{directory}/{c}")
@@ -272,7 +270,7 @@ def createDatasets(main_path):
             else:
                 validation_writer.writerow(row)
 
-    with open(f"{output}_utils", 'wb') as f:
+    with open(f"{output}/utils", 'wb') as f:
         pickle.dump(classes, f)
 
     train_f.close()
