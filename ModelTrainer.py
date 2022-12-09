@@ -108,8 +108,12 @@ class ModelTrainer:
                     best_model_wts = copy.deepcopy(model.state_dict())
 
         time_elapsed = time.time() - since
-        logging.debug(f'Training complete in {time_elapsed // 60}m {time_elapsed % 60}s')
-        logging.debug(f'Best val Acc: {best_acc}%')
+        logging.debug(f'{self.training_loss}')
+        logging.debug(f'{self.training_accuracy}')
+        logging.debug(f'{self.validation_loss}')
+        logging.debug(f'{self.validation_accuracy}')
+        logging.debug(f'Training complete in {time_elapsed // 60}m {time_elapsed % 60:2.0f}s')
+        logging.debug(f'Best val Acc: {best_acc:3.4f}%')
 
         # load best model weights
         model.load_state_dict(best_model_wts)
@@ -119,14 +123,18 @@ class ModelTrainer:
         plt.figure()
         plt.plot(self.training_loss, label='Zbiór treningowy')
         plt.plot(self.validation_loss, label='Zbiór walidacyjny')
+        plt.title("Funkcja straty")
+        plt.xlabel('Liczba epok')
+        plt.ylabel('Wartość')
         plt.legend(frameon=False)
-        # plt.show()
         plt.savefig(f'{self.filename}/loss.png')
 
     def createAccPlot(self):
         plt.figure()
-        plt.plot(self.training_accuracy, label='Dokładność zbioru treningowego')
-        plt.plot(self.validation_accuracy, label='Dokładność zbioru walidacyjnego')
+        plt.plot(self.training_accuracy, label='Zbiór treningowy')
+        plt.plot(self.validation_accuracy, label='Zbiór walidacyjny')
+        plt.title("Dokładność")
+        plt.xlabel('Liczba epok')
+        plt.ylabel('Dokładność [%]')
         plt.legend(frameon=False)
-        # plt.show()
         plt.savefig(f'{self.filename}/acc.png')
