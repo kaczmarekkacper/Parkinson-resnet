@@ -25,6 +25,7 @@ class ModelTrainer:
         self.filename = filename
 
     def train_resnet(self, model, train_data_loader, test_data_loader, num_epochs):
+        logging.debug(f'CPU/CUDA?: {self.device}')
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, len(self.classes))
         model = model.to(self.device)

@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy import signal
@@ -192,7 +194,7 @@ def createWaveletPlotForResnet(x, cwtFunc, width, path, format):
               aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
     fig.savefig(f'{path}.{format}',
                 format=format, bbox_inches="tight", pad_inches=0)  # , dpi=dpi)
-    plt.close()
+    plt.close(fig)
 
 
 def getParkinsonStatus(patients, id):
@@ -231,6 +233,10 @@ def removeDatasetFolders(path):
 def createDatasetFolders(main_path):
     os.makedirs(f'{main_path}/Healthy', exist_ok=True)
     os.makedirs(f'{main_path}/Parkinson', exist_ok=True)
+
+def datasetExists(main_path):
+    return os.path.exists(main_path)
+
 
 
 def createDatasets(main_path):

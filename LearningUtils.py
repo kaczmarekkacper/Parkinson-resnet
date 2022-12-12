@@ -16,7 +16,7 @@ def get_classes(imgdir):
     return data
 
 
-def prepare_data(imgdir):
+def prepare_data(imgdir, batch_size):
     train_transform = transforms.Compose([
         transforms.RandomResizedCrop(224),
         transforms.RandomHorizontalFlip(),
@@ -46,7 +46,6 @@ def prepare_data(imgdir):
         transform=test_transform
     )
 
-    batch_size = 32
     train_data_loader = DataLoader(
         training_data, batch_size=batch_size, shuffle=True)
     test_data_loader = DataLoader(
