@@ -1,13 +1,13 @@
-import matplotlib
-matplotlib.use('agg')
-import matplotlib.pyplot as plt
-import pandas as pd
-from scipy import signal
-import os
+import shutil
+import pickle
 import csv
 import os
-import pickle
-import shutil
+from scipy import signal
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('agg')
+
 
 def readData():
     col_names = ['SUM', 'FILENAME']
@@ -52,7 +52,7 @@ def createComparisonPlot(healthy_record, parkinson_record, sample_number):
 
     fig, axs = plt.subplots(2, 2)
     healthy_plot_left = axs[0, 0]
-    healthy_plot_left.set_title('Normalny')
+    healthy_plot_left.set_title('Zdrowy')
     healthy_plot_left.plot(x_healthy_left, y_healthy_left)
     healthy_plot_left.set_ylim(0, y_lim_value)
     parkinson_plot_left = axs[0, 1]
@@ -185,15 +185,45 @@ def createWaveletPlotForResnet(x, cwtFunc, width, path, format):
     width = 100
     cwtmatr = cwtFunc()
     fig = plt.figure(frameon=False)
-    # dpi = 1
-    # fig.set_size_inches(224 / dpi, 224 / dpi)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
     ax.imshow(cwtmatr, extent=[0, x.values[-1], width, 1], cmap='PRGn',
               aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
     fig.savefig(f'{path}.{format}',
-                format=format, bbox_inches="tight", pad_inches=0)  # , dpi=dpi)
+                format=format, bbox_inches="tight", pad_inches=0)
+    plt.close(fig)
+
+
+def createWaveletPlotForResnet224x224(x, cwtFunc, width, path, format):
+    width = 100
+    cwtmatr = cwtFunc()
+    fig = plt.figure(frameon=False)
+    dpi = 1
+    fig.set_size_inches(224 / dpi, 224 / dpi)
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
+    ax.imshow(cwtmatr, extent=[0, x.values[-1], width, 1], cmap='PRGn',
+              aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
+    fig.savefig(f'{path}.{format}',
+                format=format, bbox_inches="tight", pad_inches=0, dpi=dpi)
+    plt.close(fig)
+
+
+def createWaveletPlotForResnet640x224(x, cwtFunc, width, path, format):
+    width = 100
+    cwtmatr = cwtFunc()
+    fig = plt.figure(frameon=False)
+    dpi = 1
+    fig.set_size_inches(640 / dpi, 224 / dpi)
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
+    ax.imshow(cwtmatr, extent=[0, x.values[-1], width, 1], cmap='PRGn',
+              aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
+    fig.savefig(f'{path}.{format}',
+                format=format, bbox_inches="tight", pad_inches=0, dpi=dpi)
     plt.close(fig)
 
 
@@ -222,21 +252,23 @@ def createDatabase(record, id, sensors, splits_list, howManyInSample, main_path,
                     path = f'{main_path}/{wavelet}/{parkinson}/{id}_{name}_{i}'
                     def cwtFunc(): return signal.cwt(y, signal.ricker, widths, dtype='float64')
                     if wavelet == 'Morlet':
-                        def cwtFunc(): return signal.cwt(y, signal.morlet2, widths, dtype='float64', w=w)
-                    createWaveletPlotForResnet(
+                        def cwtFunc(): return signal.cwt(
+                            y, signal.morlet2, widths, dtype='float64', w=w)
+                    createWaveletPlotForResnet640x224(
                         x, cwtFunc, widths[-1], path, 'jpg')
 
 
 def removeDatasetFolders(path):
     shutil.rmtree(f'{path}', ignore_errors=True)
 
+
 def createDatasetFolders(main_path):
     os.makedirs(f'{main_path}/Healthy', exist_ok=True)
     os.makedirs(f'{main_path}/Parkinson', exist_ok=True)
 
+
 def datasetExists(main_path):
     return os.path.exists(main_path)
-
 
 
 def createDatasets(main_path):
@@ -255,8 +287,8 @@ def createDatasets(main_path):
     s = split.split('/')
     splits = {
         "train": int(s[0]),
-        "test": int(s[1]),
-        "validation": int(s[2])
+        "validation": int(s[1]),
+        "test": int(s[2])
     }
 
     classes = {}

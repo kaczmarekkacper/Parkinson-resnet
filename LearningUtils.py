@@ -18,14 +18,14 @@ def get_classes(imgdir):
 
 def prepare_data(imgdir, batch_size):
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(224),
+        transforms.RandomCrop(224),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
     test_transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
+        transforms.Resize(224),
+        # transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -70,4 +70,5 @@ def predict_image(model, data_loader, classes):
             confusion_matrix[t.long(), p.long()] += 1
     acc = corrects.double() / len(data_loader.dataset)
     logging.debug(f'Test dataset Accuracy: {acc.cpu().detach().numpy()}')
-    logging.debug(f'Test dataset Confusion_matrix \n{confusion_matrix.cpu().detach().numpy()}')
+    logging.debug(
+        f'Test dataset Confusion_matrix \n{confusion_matrix.cpu().detach().numpy()}')
