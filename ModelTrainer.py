@@ -101,7 +101,8 @@ class ModelTrainer:
                     self.validation_loss.append(epoch_loss)
                     self.validation_accuracy.append(epoch_acc.cpu())
 
-                logging.debug(f'{phase} Loss: {epoch_loss:3.4f} Acc: {epoch_acc:3.4f}%')
+                logging.debug(
+                    f'{phase} Loss: {epoch_loss:3.4f} Acc: {epoch_acc:3.4f}%')
 
                 # deep copy the model
                 if phase == 'val' and epoch_acc > best_acc:
@@ -113,7 +114,8 @@ class ModelTrainer:
         logging.debug(f'{self.training_accuracy}')
         logging.debug(f'{self.validation_loss}')
         logging.debug(f'{self.validation_accuracy}')
-        logging.debug(f'Training complete in {time_elapsed // 60}m {time_elapsed % 60:2.0f}s')
+        logging.debug(
+            f'Training complete in {time_elapsed // 60}m {time_elapsed % 60:2.0f}s')
         logging.debug(f'Best val Acc: {best_acc:3.4f}%')
 
         # load best model weights

@@ -170,33 +170,31 @@ def getXYFromPatient(patient_record, getField, sample_number=1000):
     return x, y
 
 
-def createWaveletPlot(x, cwtFunc, width, path, format):
+def createWaveletPlot(x, cwtFunc, widths, path, format):
     cwtmatr = cwtFunc()
     plt.figure()
     # dpi = 1
     # fig.set_size_inches(224 / dpi, 224 / dpi)
-    plt.imshow(cwtmatr, extent=[0, x.values[-1], width, 1], cmap='PRGn',
+    plt.imshow(cwtmatr, extent=[0, x.values[-1], widths[-1], widths[0]], cmap='PRGn',
                aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
     plt.savefig(f'{path}.{format}',
                 format=format, bbox_inches="tight", pad_inches=0)  # , dpi=dpi)
 
 
-def createWaveletPlotForResnet(x, cwtFunc, width, path, format):
-    width = 100
+def createWaveletPlotForResnet(x, cwtFunc, widths, path, format):
     cwtmatr = cwtFunc()
     fig = plt.figure(frameon=False)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
-    ax.imshow(cwtmatr, extent=[0, x.values[-1], width, 1], cmap='PRGn',
+    ax.imshow(cwtmatr, extent=[0, x.values[-1], widths[-1], widths[0]], cmap='PRGn',
               aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
     fig.savefig(f'{path}.{format}',
                 format=format, bbox_inches="tight", pad_inches=0)
     plt.close(fig)
 
 
-def createWaveletPlotForResnet224x224(x, cwtFunc, width, path, format):
-    width = 100
+def createWaveletPlotForResnet224x224(x, cwtFunc, widths, path, format):
     cwtmatr = cwtFunc()
     fig = plt.figure(frameon=False)
     dpi = 1
@@ -204,15 +202,14 @@ def createWaveletPlotForResnet224x224(x, cwtFunc, width, path, format):
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
-    ax.imshow(cwtmatr, extent=[0, x.values[-1], width, 1], cmap='PRGn',
+    ax.imshow(cwtmatr, extent=[0, x.values[-1], widths[-1], widths[0]], cmap='PRGn',
               aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
     fig.savefig(f'{path}.{format}',
                 format=format, bbox_inches="tight", pad_inches=0, dpi=dpi)
     plt.close(fig)
 
 
-def createWaveletPlotForResnet640x224(x, cwtFunc, width, path, format):
-    width = 100
+def createWaveletPlotForResnet640x224(x, cwtFunc, widths, path, format):
     cwtmatr = cwtFunc()
     fig = plt.figure(frameon=False)
     dpi = 1
@@ -220,7 +217,7 @@ def createWaveletPlotForResnet640x224(x, cwtFunc, width, path, format):
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
-    ax.imshow(cwtmatr, extent=[0, x.values[-1], width, 1], cmap='PRGn',
+    ax.imshow(cwtmatr, extent=[0, x.values[-1], widths[-1], widths[0]], cmap='PRGn',
               aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
     fig.savefig(f'{path}.{format}',
                 format=format, bbox_inches="tight", pad_inches=0, dpi=dpi)
@@ -255,7 +252,7 @@ def createDatabase(record, id, sensors, splits_list, howManyInSample, main_path,
                         def cwtFunc(): return signal.cwt(
                             y, signal.morlet2, widths, dtype='float64', w=w)
                     createWaveletPlotForResnet640x224(
-                        x, cwtFunc, widths[-1], path, 'jpg')
+                        x, cwtFunc, widths, path, 'jpg')
 
 
 def removeDatasetFolders(path):
