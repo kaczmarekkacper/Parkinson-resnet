@@ -170,15 +170,36 @@ def getXYFromPatient(patient_record, getField, sample_number=1000):
     return x, y
 
 
-def createWaveletPlot(x, cwtFunc, widths, path, format):
+def createWaveletPlot(x, cwtFunc, widths, path, format, title=None):
     cwtmatr = cwtFunc()
     plt.figure()
     # dpi = 1
     # fig.set_size_inches(224 / dpi, 224 / dpi)
     plt.imshow(cwtmatr, extent=[0, x.values[-1], widths[-1], widths[0]], cmap='PRGn',
                aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
+    if title:
+        plt.title(title, fontsize=18)
     plt.savefig(f'{path}.{format}',
-                format=format, bbox_inches="tight", pad_inches=0)  # , dpi=dpi)
+                format=format, bbox_inches="tight")  # , dpi=dpi)
+    plt.close()
+
+
+def createWaveletPlotWithSize(x, cwtFunc, widths, path, format, title=None, sizes=None):
+    cwtmatr = cwtFunc()
+    fig = plt.figure()
+    if sizes:
+        dpi = 40
+        fig.set_size_inches(sizes[0] / dpi, sizes[1] / dpi)
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    # ax.set_axis_off()
+    fig.add_axes(ax)
+    ax.imshow(cwtmatr, extent=[0, x.values[-1], widths[-1], widths[0]], cmap='PRGn',
+              aspect='auto', vmax=cwtmatr.max(), vmin=cwtmatr.min())
+    if title:
+        ax.set_title(title, fontsize=18)
+    fig.savefig(f'{path}.{format}',
+                format=format, bbox_inches="tight", dpi=dpi)
+    plt.close(fig)
 
 
 def createWaveletPlotForResnet(x, cwtFunc, widths, path, format):
