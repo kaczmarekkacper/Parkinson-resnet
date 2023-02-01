@@ -30,7 +30,8 @@ class ModelTrainer:
         model.fc = nn.Linear(num_ftrs, len(self.classes))
         model = model.to(self.device)
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
+        # optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
+        optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
         self.training_loss = list()
         self.training_accuracy = list()
